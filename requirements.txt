@@ -1,0 +1,5 @@
+# Starter deps shared by the app shell. Each agent's work order lists what it adds;
+# merge those in at stitch time (see the Stitching Plan in any work order file).
+fastapi
+uvicorn[standard]
+pydantic
