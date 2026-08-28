@@ -3,3 +3,7 @@
 fastapi
 uvicorn[standard]
 pydantic
+
+# Agent C additions
+python-multipart   # required for file upload parsing
+httpx               # needed by fastapi.testclient.TestClient

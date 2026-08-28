@@ -1,0 +1,15 @@
+# Render Blueprint — deploys via the Dockerfile in this same directory.
+services:
+  - type: web
+    name: sih26139-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: MODEL_PATH
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
