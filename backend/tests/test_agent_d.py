@@ -4,8 +4,8 @@ asks for: health + metrics endpoints, CORS headers, and the mounted stub scan
 routes.
 
 Run from anywhere with:  pytest backend/tests/test_agent_d.py
-(needs `pip install pytest httpx` in addition to requirements.txt — httpx backs
-FastAPI's TestClient and isn't needed at runtime, only for this test file.)
+(needs `pip install pytest httpx2` in addition to requirements.txt — httpx2
+backs FastAPI's TestClient and isn't needed at runtime, only for this test file.)
 """
 
 import os
