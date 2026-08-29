@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import config
 from app.db import database
 from app.ml import inference
-from app.api import scans, metrics
+from app.api import scans, metrics, reports
 
 
 @asynccontextmanager
@@ -36,3 +36,4 @@ app.add_middleware(
 
 app.include_router(scans.router)
 app.include_router(metrics.router)
+app.include_router(reports.router)
