@@ -11,3 +11,8 @@ httpx               # needed by fastapi.testclient.TestClient
 # Agent B additions
 Pillow
 numpy
+
+# Agent A additions
+sqlalchemy>=2.0
+psycopg2-binary   # Postgres driver for prod (Neon)
+pytest
