@@ -1,9 +1,13 @@
 """
-Agent D's self-test — exercises exactly what the work order's Self-test section
-asks for: health + metrics endpoints, CORS headers, and the mounted stub scan
-routes.
+Agent D's self-test — health + metrics endpoints, CORS headers.
 
-Run from anywhere with:  pytest backend/tests/test_agent_d.py
+(The original version of this file also asserted Agent D's own throwaway stub
+scan-router responses, which was only valid before stitching. Now that Agent
+C's real app/api/scans.py is mounted, that coverage lives in
+tests/test_scans_api.py instead — asserting the stub shape here would just be
+testing for the wrong behavior.)
+
+Run from anywhere with:  pytest tests/test_agent_d.py
 (needs `pip install pytest httpx2` in addition to requirements.txt — httpx2
 backs FastAPI's TestClient and isn't needed at runtime, only for this test file.)
 """
@@ -45,14 +49,3 @@ def test_cors_headers_present_for_allowed_origin():
         )
     assert response.status_code == 200
     assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
-
-
-def test_stub_scan_routes_reachable_through_mounted_router():
-    with TestClient(app) as client:
-        assert client.get("/api/v1/scans").json() == []
-        assert client.get("/api/v1/scans/abc123").json() == {
-            "stub": True,
-            "scan_id": "abc123",
-        }
-        assert client.get("/api/v1/scans/abc123/heatmap").json() == {"stub": True}
-        assert client.post("/api/v1/scans").status_code == 200
