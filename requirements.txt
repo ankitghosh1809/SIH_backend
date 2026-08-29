@@ -16,3 +16,6 @@ numpy
 sqlalchemy>=2.0
 psycopg2-binary   # Postgres driver for prod (Neon)
 pytest
+
+# Agent E additions
+reportlab
