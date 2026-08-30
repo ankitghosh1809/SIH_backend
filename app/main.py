@@ -14,7 +14,7 @@ from app import config
 from app.db import database
 from app.ml import inference
 from app.api import scans, metrics, reports
-
+from app.api import admin
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -37,3 +37,4 @@ app.add_middleware(
 app.include_router(scans.router)
 app.include_router(metrics.router)
 app.include_router(reports.router)
+app.include_router(admin.router)
