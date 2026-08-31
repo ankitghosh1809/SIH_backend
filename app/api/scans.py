@@ -16,6 +16,7 @@ from fastapi.responses import Response
 from app import schemas
 from app.db import crud
 from app.db.database import get_session
+from app.db.patient_models import Patient  # Round 3 / Agent N: validate optional patient_id
 from app.ml import inference, storage
 
 router = APIRouter(prefix="/api/v1/scans", tags=["scans"])
@@ -70,11 +71,19 @@ def _to_scan_response(row) -> schemas.ScanResponse:
 async def create_scan(
     file: UploadFile = File(...),
     patient_name: Optional[str] = Form(None),
+    patient_id: Optional[str] = Form(None),
     db=Depends(get_session),
 ):
     image_bytes = await file.read()
     if not image_bytes or not _looks_like_image(image_bytes):
         raise HTTPException(status_code=422, detail="Uploaded file is not a readable image.")
+
+    # Round 3 / Agent N: patient_id is optional (old callers that only send
+    # patient_name must keep working unchanged) but if it IS provided, it must
+    # point at a real patient — checked before running inference so a bad id
+    # fails fast rather than after paying the inference cost.
+    if patient_id is not None and db.get(Patient, patient_id) is None:
+        raise HTTPException(status_code=404, detail="Patient not found")
 
     scan_id = str(uuid.uuid4())
 
@@ -95,6 +104,7 @@ async def create_scan(
         db,
         scan_id=scan_id,
         patient_name=patient_name,
+        patient_id=patient_id,
         image_path=image_path,
         heatmap_path=heatmap_path,
         dr_probability=dr_probability,
