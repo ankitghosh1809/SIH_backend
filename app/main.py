@@ -21,7 +21,9 @@ from app.api import auth
 from app.api import review
 from app.api import batch
 from app.api import referrals
+ agent-n-patient-registry
 from app.api import patients
+main
 
 
 @asynccontextmanager
@@ -56,4 +58,6 @@ app.include_router(auth.router)
 app.include_router(review.router)
 app.include_router(batch.router)
 app.include_router(referrals.router)
+agent-n-patient-registry
 app.include_router(patients.router)
+main

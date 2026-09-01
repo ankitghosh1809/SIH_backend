@@ -9,9 +9,10 @@ import time
 import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 
+from app import config
 from app.db import crud
 from app.db.database import get_session
 from app.ml import inference, storage
@@ -51,7 +52,12 @@ class BatchResponse(BaseModel):
 
 
 @router.post("", response_model=BatchResponse, status_code=200)
-async def create_batch(files: List[UploadFile] = File(...), db=Depends(get_session)):
+@config.limiter.limit(config.UPLOAD_RATE_LIMIT)  # Agent M: basic abuse protection
+async def create_batch(
+    request: Request,  # required by slowapi's @limiter.limit(...) to key off the client IP
+    files: List[UploadFile] = File(...),
+    db=Depends(get_session),
+):
     if len(files) > MAX_BATCH_SIZE:
         raise HTTPException(
             status_code=422,

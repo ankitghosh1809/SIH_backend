@@ -10,10 +10,10 @@ import time
 import uuid
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import Response
 
-from app import schemas
+from app import config, schemas
 from app.db import crud
 from app.db.database import get_session
 from app.db.patient_models import Patient  # Round 3 / Agent N: validate optional patient_id
@@ -68,7 +68,9 @@ def _to_scan_response(row) -> schemas.ScanResponse:
 
 
 @router.post("", response_model=schemas.ScanResponse, status_code=201)
+@config.limiter.limit(config.UPLOAD_RATE_LIMIT)  # Agent M: basic abuse protection
 async def create_scan(
+    request: Request,  # required by slowapi's @limiter.limit(...) to key off the client IP
     file: UploadFile = File(...),
     patient_name: Optional[str] = Form(None),
     patient_id: Optional[str] = Form(None),

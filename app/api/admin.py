@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.auth.security import require_role
 from app.db.database import get_session
 from app.db.models import Scan
 
@@ -18,10 +19,7 @@ class AdminStatsResponse(BaseModel):
     by_model_version: Dict[str, int]    # e.g. {"stub-v0": 14, "hybrid-quantum-v1": 6}
 
 
-# TODO: consider protecting this with the same API-key pattern the review
-# endpoint uses, once that lands — operational stats probably shouldn't stay
-# fully public forever.
-@router.get("/stats", response_model=AdminStatsResponse)
+@router.get("/stats", response_model=AdminStatsResponse, dependencies=[Depends(require_role("admin"))])
 def get_admin_stats(db: Session = Depends(get_session)) -> AdminStatsResponse:
     total_scans = db.query(func.count(Scan.id)).scalar() or 0
 

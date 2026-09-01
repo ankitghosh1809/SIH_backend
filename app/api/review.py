@@ -1,42 +1,31 @@
 """
-Doctor review workflow (Agent G): lets a clinician attach a note to a scan
-and, optionally, override its AI-assigned risk level. This is the
-human-in-the-loop piece that makes "screening aid, not diagnostic
-replacement" a real workflow rather than just a disclaimer.
+Doctor review workflow (Agent G; auth replaced by Agent M): lets a
+clinician attach a note to a scan and, optionally, override its
+AI-assigned risk level. This is the human-in-the-loop piece that makes
+"screening aid, not diagnostic replacement" a real workflow rather than
+just a disclaimer.
 
-Auth is a single shared API key (not full user accounts) — deliberately
-scoped down for the hackathon build. Swap DOCTOR_API_KEY for real per-user
-credentials before this goes anywhere near a real deployment with real
-patients.
+Auth: role-based JWT (see app.auth.security.require_role), replacing the
+single shared DOCTOR_API_KEY this endpoint used through Round 2. Per-user
+identity now comes from the token instead of a shared header, so revoking
+one person's access no longer means rotating a key everyone shared.
 """
-import os
 import uuid
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.auth.security import require_role
 from app.db.crud import get_scan
 from app.db.database import get_session
 from app.db.review_models import Review  # import registers the `reviews` table
 
-DOCTOR_API_KEY = os.environ.get("DOCTOR_API_KEY", "dev-doctor-key")  # change in production
 VALID_RISK_LEVELS = {"low", "medium", "high"}
 
 router = APIRouter(prefix="/api/v1", tags=["review"])
-
-
-def require_doctor_key(x_api_key: Optional[str] = Header(None)):
-    # Optional[str] = Header(None), NOT str = Header(...):
-    # with Header(...) (required), FastAPI raises its own 422 for a *missing*
-    # header before this function body ever runs, so a request with no
-    # X-API-Key at all would get 422 instead of the 401 the self-test wants.
-    # Making it optional and checking manually is what gives 401 either way
-    # (missing or wrong).
-    if x_api_key != DOCTOR_API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid or missing X-API-Key")
 
 
 class ReviewRequest(BaseModel):
@@ -69,7 +58,7 @@ def _serialize(review: Review) -> ReviewResponse:
     "/scans/{scan_id}/review",
     response_model=ReviewResponse,
     status_code=201,
-    dependencies=[Depends(require_doctor_key)],
+    dependencies=[Depends(require_role("doctor", "admin"))],
 )
 def create_review(scan_id: str, payload: ReviewRequest, db: Session = Depends(get_session)):
     # ASSUMPTION (not verifiable without the real crud.py): get_scan(db, scan_id)
