@@ -31,7 +31,11 @@ def test_create_scan_returns_201_and_matches_schema():
     }
     assert set(body["prediction"].keys()) == {"diabetic_retinopathy", "cataract"}
     for field in ("diabetic_retinopathy", "cataract"):
-        assert set(body["prediction"][field].keys()) == {"positive", "probability"}
+        # Round 3 (Agent P) added `uncertainty` to PredictionField
+        # (app/schemas.py) and populates it on every response — required by
+        # that work order's "every ScanResponse includes uncertainty for both
+        # conditions" — so the expected key set here now includes it too.
+        assert set(body["prediction"][field].keys()) == {"positive", "probability", "uncertainty"}
     assert body["risk_level"] in {"low", "medium", "high"}
 
 

@@ -6,6 +6,7 @@ from typing import Optional, List
 class PredictionField(BaseModel):
     positive: bool
     probability: float
+    uncertainty: Optional[float] = None
 
 class Prediction(BaseModel):
     diabetic_retinopathy: PredictionField

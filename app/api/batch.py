@@ -12,18 +12,12 @@ from typing import List
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
+from app import config
 from app.db import crud
 from app.db.database import get_session
 from app.ml import inference, storage
 
 router = APIRouter(prefix="/api/v1/batch", tags=["batch"])
-
-# Loaded once at import time, same pattern as scans.py's own _model.
-_model = inference.load_model()
-
-# ponytail: mirrors scans.py's MODEL_VERSION; promote to a shared constant (e.g.
-# config.py) if a third owner ever needs it too.
-MODEL_VERSION = "stub-v0"
 
 # Screening-camp tool, not a bulk importer.
 MAX_BATCH_SIZE = 50
@@ -51,7 +45,11 @@ class BatchResponse(BaseModel):
 
 
 @router.post("", response_model=BatchResponse, status_code=200)
-async def create_batch(files: List[UploadFile] = File(...), db=Depends(get_session)):
+async def create_batch(
+    files: List[UploadFile] = File(...),
+    db=Depends(get_session),
+    model=Depends(inference.get_model),
+):
     if len(files) > MAX_BATCH_SIZE:
         raise HTTPException(
             status_code=422,
@@ -72,7 +70,7 @@ async def create_batch(files: List[UploadFile] = File(...), db=Depends(get_sessi
             # run_inference's Image.open()/.load() already raises on unreadable bytes,
             # and that's what routes this item into the except branch below.
             start = time.perf_counter()
-            result = inference.run_inference(_model, image_bytes)
+            result = inference.run_inference(model, image_bytes)
             inference_ms = int((time.perf_counter() - start) * 1000)
 
             dr_probability = result["dr_probability"]
@@ -92,7 +90,7 @@ async def create_batch(files: List[UploadFile] = File(...), db=Depends(get_sessi
                 cataract_probability=cataract_probability,
                 cataract_positive=cataract_probability > 0.5,
                 risk_level=risk_level,
-                model_version=MODEL_VERSION,
+                model_version=config.MODEL_VERSION,
                 inference_ms=inference_ms,
             )
 
