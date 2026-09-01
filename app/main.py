@@ -20,11 +20,9 @@ from app.api import admin
 from app.api import auth
 from app.api import review
 from app.api import batch
-agent-p-model-confidence
 from app.api import explain
 from app.api import referrals
 from app.api import patients
-main
 
 
 @asynccontextmanager
@@ -69,8 +67,6 @@ app.include_router(admin.router)
 app.include_router(auth.router)
 app.include_router(review.router)
 app.include_router(batch.router)
-agent-p-model-confidence
 app.include_router(explain.router)
 app.include_router(referrals.router)
 app.include_router(patients.router)
-main
