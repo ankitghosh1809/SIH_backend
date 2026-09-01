@@ -44,6 +44,7 @@ class BatchResponse(BaseModel):
     summary: BatchSummary
 
 
+@router.post("", response_model=BatchResponse, status_code=200)
 @config.limiter.limit(config.UPLOAD_RATE_LIMIT)  # Agent M: basic abuse protection
 async def create_batch(
     request: Request,  # required by slowapi's @limiter.limit(...) to key off the client IP
