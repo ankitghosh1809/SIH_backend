@@ -21,13 +21,6 @@ from app.ml import inference, storage
 
 router = APIRouter(prefix="/api/v1/scans", tags=["scans"])
 
-# Loaded once at import time and reused for every request rather than
-# reloading per call. Assumes the real model_backend.load_model() is
-# similarly cheap to call once and hold in memory.
-_model = inference.load_model()
-
-MODEL_VERSION = "stub-v0"
-
 # Enough of a signature check to reject obviously-not-an-image uploads
 # before they reach inference, without adding an image-decoding dependency
 # to this file. Real format/corruption validation belongs in the eventual
@@ -55,10 +48,12 @@ def _to_scan_response(row) -> schemas.ScanResponse:
             diabetic_retinopathy=schemas.PredictionField(
                 positive=row.dr_positive,
                 probability=row.dr_probability,
+                uncertainty=inference.compute_uncertainty(row.dr_probability),
             ),
             cataract=schemas.PredictionField(
                 positive=row.cataract_positive,
                 probability=row.cataract_probability,
+                uncertainty=inference.compute_uncertainty(row.cataract_probability),
             ),
         ),
         risk_level=row.risk_level,
@@ -75,6 +70,7 @@ async def create_scan(
     patient_name: Optional[str] = Form(None),
     patient_id: Optional[str] = Form(None),
     db=Depends(get_session),
+    model=Depends(inference.get_model),
 ):
     image_bytes = await file.read()
     if not image_bytes or not _looks_like_image(image_bytes):
@@ -90,7 +86,7 @@ async def create_scan(
     scan_id = str(uuid.uuid4())
 
     start = time.perf_counter()
-    result = inference.run_inference(_model, image_bytes)
+    result = inference.run_inference(model, image_bytes)
     inference_ms = int((time.perf_counter() - start) * 1000)
 
     dr_probability = result["dr_probability"]
@@ -114,7 +110,7 @@ async def create_scan(
         cataract_probability=cataract_probability,
         cataract_positive=cataract_positive,
         risk_level=risk_level,
-        model_version=MODEL_VERSION,
+        model_version=config.MODEL_VERSION,
         inference_ms=inference_ms,
     )
 
