@@ -19,3 +19,14 @@ pytest
 
 # Agent E additions
 reportlab
+
+# Agent M additions — auth + rate limiting
+passlib[bcrypt]
+bcrypt==4.0.1       # pinned: passlib 1.7.4 (its last release) can't read bcrypt's version
+                    # string on bcrypt>=4.1, and with bcrypt 5.x this isn't just a warning —
+                    # CryptContext.hash()/.verify() raise outright. 4.0.1 is the newest
+                    # version that still works cleanly with passlib. Bump only alongside a
+                    # passlib upgrade/fix.
+PyJWT               # chosen over python-jose: python-jose is unmaintained since 2021 and has
+                    # a real CVE (CVE-2024-33663); FastAPI's own docs now recommend PyJWT.
+slowapi
