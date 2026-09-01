@@ -1,7 +1,10 @@
-"""Tests for GET /api/v1/admin/stats (Agent H).
+"""Tests for GET /api/v1/admin/stats (Agent H; auth added by Agent M).
 
 Runs against an isolated in-memory SQLite database via a dependency
 override — never touches dev.db or a DATABASE_URL-configured database.
+The override applies to every nested Depends(get_session) too, including
+the one inside app.auth.security.get_current_user, so registering/logging
+in through this fixture's test_client lands in the same isolated DB.
 """
 
 import uuid
@@ -56,10 +59,33 @@ def _make_scan(risk_level: str, model_version: str, inference_ms: int) -> Scan:
     )
 
 
+def _auth_header(test_client, role: str) -> dict:
+    username = f"test_{role}_{uuid.uuid4().hex[:8]}"
+    password = "testpass123"
+    resp = test_client.post(
+        "/api/v1/auth/register",
+        json={"username": username, "password": password, "role": role},
+    )
+    assert resp.status_code == 201, resp.text
+    resp = test_client.post(
+        "/api/v1/auth/login",
+        data={"username": username, "password": password},
+    )
+    assert resp.status_code == 200, resp.text
+    return {"Authorization": f"Bearer {resp.json()['access_token']}"}
+
+
+def test_admin_stats_requires_auth(client):
+    test_client, _ = client
+    resp = test_client.get("/api/v1/admin/stats")
+    assert resp.status_code == 401
+
+
 def test_admin_stats_zero_scans(client):
     test_client, _ = client
+    headers = _auth_header(test_client, "admin")
 
-    response = test_client.get("/api/v1/admin/stats")
+    response = test_client.get("/api/v1/admin/stats", headers=headers)
 
     assert response.status_code == 200
     data = response.json()
@@ -77,8 +103,9 @@ def test_admin_stats_with_scans(client):
     db.add(_make_scan("high", "stub-v0", 300))
     db.commit()
     db.close()
+    headers = _auth_header(test_client, "admin")
 
-    response = test_client.get("/api/v1/admin/stats")
+    response = test_client.get("/api/v1/admin/stats", headers=headers)
 
     assert response.status_code == 200
     data = response.json()
