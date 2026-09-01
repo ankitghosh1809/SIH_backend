@@ -20,6 +20,7 @@ from app.api import admin
 from app.api import auth
 from app.api import review
 from app.api import batch
+from app.api import referrals
 
 
 @asynccontextmanager
@@ -53,3 +54,4 @@ app.include_router(admin.router)
 app.include_router(auth.router)
 app.include_router(review.router)
 app.include_router(batch.router)
+app.include_router(referrals.router)
