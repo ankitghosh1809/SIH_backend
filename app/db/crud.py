@@ -6,13 +6,14 @@ by name, so don't change them.
 from app.db.models import ModelMetrics, Scan
 
 
-def create_scan(db, *, scan_id: str, patient_name=None, image_path, heatmap_path=None,
+def create_scan(db, *, scan_id: str, patient_name=None, patient_id=None, image_path, heatmap_path=None,
                  dr_probability, dr_positive, cataract_probability, cataract_positive,
                  risk_level, model_version, inference_ms):
     """Insert one scan row using the caller-supplied scan_id and return it."""
     scan = Scan(
         id=scan_id,
         patient_name=patient_name,
+        patient_id=patient_id,
         image_path=image_path,
         heatmap_path=heatmap_path,
         dr_probability=dr_probability,

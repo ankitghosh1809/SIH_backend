@@ -9,15 +9,22 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app import config
 from app.db import database
 from app.ml import inference
 from app.api import scans, metrics, reports
 from app.api import admin
+from app.api import auth
 from app.api import review
 from app.api import batch
+agent-p-model-confidence
 from app.api import explain
+from app.api import referrals
+from app.api import patients
+main
 
 
 @asynccontextmanager
@@ -49,10 +56,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Agent M: rate limiting. The Limiter instance itself lives in app.config (see
+# that file for why); this is just the per-app wiring slowapi needs — the
+# @limiter.limit(...) decorators are on the two routes in scans.py/batch.py.
+app.state.limiter = config.limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 app.include_router(scans.router)
 app.include_router(metrics.router)
 app.include_router(reports.router)
 app.include_router(admin.router)
+app.include_router(auth.router)
 app.include_router(review.router)
 app.include_router(batch.router)
+agent-p-model-confidence
 app.include_router(explain.router)
+app.include_router(referrals.router)
+app.include_router(patients.router)
+main

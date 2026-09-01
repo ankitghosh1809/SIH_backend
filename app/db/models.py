@@ -4,7 +4,7 @@
 UUID type, so these models work unchanged against SQLite (tests/dev) and
 Postgres / Neon (prod).
 """
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text, func
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -15,6 +15,10 @@ class Scan(Base):
 
     id = Column(String(36), primary_key=True)  # uuid4, stored as string
     patient_name = Column(String(120), nullable=True)
+    # Round 3 / Agent N: optional link to a real patients row. Nullable so every
+    # existing call site and all old data (patient_name only, no patient_id)
+    # keeps working completely unchanged — see app/api/patients.py.
+    patient_id = Column(String(36), ForeignKey("patients.id"), nullable=True)
     image_path = Column(Text, nullable=False)
     heatmap_path = Column(Text, nullable=True)
     dr_probability = Column(Float)
