@@ -23,6 +23,8 @@ from app.api import batch
 from app.api import explain
 from app.api import referrals
 from app.api import patients
+from app.api import audit, notifications  # Agent Q
+from app.audit.middleware import AuditMiddleware  # Agent Q
 
 
 @asynccontextmanager
@@ -60,6 +62,10 @@ app.add_middleware(
 app.state.limiter = config.limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# Agent Q: best-effort request audit log — see app/audit/middleware.py for
+# why a write failure here can never turn into a broken request.
+app.add_middleware(AuditMiddleware)
+
 app.include_router(scans.router)
 app.include_router(metrics.router)
 app.include_router(reports.router)
@@ -70,3 +76,5 @@ app.include_router(batch.router)
 app.include_router(explain.router)
 app.include_router(referrals.router)
 app.include_router(patients.router)
+app.include_router(audit.router)  # Agent Q
+app.include_router(notifications.router)  # Agent Q
