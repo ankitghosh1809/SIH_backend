@@ -13,13 +13,7 @@ from . import model_backend
 
 def load_model():
     """Called once at FastAPI startup."""
-    try:
-        from app.config import MODEL_PATH
-    except ImportError:
-        # ponytail: config.py doesn't exist yet (Agent D, parallel track) — falls back to None,
-        # which model_backend.load_model() already accepts. Drop the try/except once it lands.
-        MODEL_PATH = None
-    return model_backend.load_model(MODEL_PATH)
+    return model_backend.load_model(config.MODEL_PATH)
 
 
 @lru_cache(maxsize=1)

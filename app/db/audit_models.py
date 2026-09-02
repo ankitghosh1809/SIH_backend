@@ -18,7 +18,5 @@ class AuditLog(Base):
     actor = Column(String(120), nullable=True)  # "authenticated" | "anonymous" — see
     # app/audit/middleware.py for why this is coarse rather than a real username.
     action = Column(String(80), nullable=False)  # e.g. "POST /api/v1/scans"
-    resource_type = Column(String(40), nullable=True)  # unused for now — see middleware.py
-    resource_id = Column(String(36), nullable=True)    # unused for now — see middleware.py
     ip_address = Column(String(45), nullable=True)
     created_at = Column(DateTime, server_default=func.now())

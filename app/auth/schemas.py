@@ -35,15 +35,3 @@ class UserResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
-
-
-class LoginRequest(BaseModel):
-    """Not used by POST /login itself — that endpoint takes
-    OAuth2PasswordRequestForm (form fields, not JSON) so /docs' built-in
-    "Authorize" button works, per the work order. Defined anyway since the
-    work order lists it explicitly alongside the other three schemas; kept
-    here for API documentation completeness and in case a future non-Swagger
-    caller wants a plain JSON login body instead of form-encoding."""
-
-    username: str
-    password: str

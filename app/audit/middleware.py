@@ -47,8 +47,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
                         id=str(uuid.uuid4()),
                         actor=actor,
                         action=f"{request.method} {request.url.path}",
-                        resource_type=None,
-                        resource_id=None,
                         ip_address=request.client.host if request.client else None,
                     )
                 )

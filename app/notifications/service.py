@@ -19,15 +19,6 @@ from app.db.notification_models import Notification
 from app.db.review_models import Review
 
 
-def send_email_stub(notification: Notification) -> None:
-    """Placeholder for real delivery. Not called anywhere yet.
-
-    TODO: wire real SMTP/Twilio here. Out of scope for this task — see the
-    work order. `channel` stays "in_app" until this is actually implemented.
-    """
-    pass
-
-
 def sync_notifications(db: Session) -> None:
     _sync_high_risk_scans(db)
     _sync_completed_reviews(db)

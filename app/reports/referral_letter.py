@@ -35,22 +35,6 @@ POSITIONING_LINE = (
 )
 
 
-def _get_first_attr(obj, *names, default="N/A"):
-    """
-    ASSUMPTION: the real Scan attribute names for the two prediction
-    probabilities aren't confirmed (app/db/models.py wasn't readable in
-    this session). This tries a few plausible names in order and falls
-    back to `default` instead of crashing — replace the candidate names
-    below with the real field name once you've checked the model.
-    """
-    for name in names:
-        if obj is not None and hasattr(obj, name):
-            value = getattr(obj, name)
-            if value is not None:
-                return value
-    return default
-
-
 def build_referral_letter_pdf(scan, referral) -> bytes:
     buffer = BytesIO()
     doc = SimpleDocTemplate(
@@ -75,17 +59,11 @@ def build_referral_letter_pdf(scan, referral) -> bytes:
     )
     body_style = styles["Normal"]
 
-    scan_id = getattr(scan, "id", "N/A") if scan is not None else "N/A"
-    scan_date = _get_first_attr(
-        scan, "created_at", "uploaded_at", "upload_date", "timestamp"
-    )
-    risk_level = _get_first_attr(scan, "risk_level")
-    dr_probability = _get_first_attr(
-        scan, "dr_probability", "diabetic_retinopathy_probability", "dr_prob"
-    )
-    cataract_probability = _get_first_attr(
-        scan, "cataract_probability", "cataract_prob"
-    )
+    scan_id = getattr(scan, "id", "N/A")
+    scan_date = getattr(scan, "created_at", "N/A")
+    risk_level = getattr(scan, "risk_level", "N/A")
+    dr_probability = getattr(scan, "dr_probability", "N/A")
+    cataract_probability = getattr(scan, "cataract_probability", "N/A")
 
     story = [
         Paragraph("Clinical Referral Letter", title_style),

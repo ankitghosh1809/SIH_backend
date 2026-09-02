@@ -20,8 +20,6 @@ class AuditLogResponse(BaseModel):
     id: str
     actor: Optional[str]
     action: str
-    resource_type: Optional[str]
-    resource_id: Optional[str]
     ip_address: Optional[str]
     created_at: Optional[str]
 
@@ -31,8 +29,6 @@ def _serialize(row: AuditLog) -> AuditLogResponse:
         id=row.id,
         actor=row.actor,
         action=row.action,
-        resource_type=row.resource_type,
-        resource_id=row.resource_id,
         ip_address=row.ip_address,
         created_at=row.created_at.isoformat() if row.created_at else None,
     )
